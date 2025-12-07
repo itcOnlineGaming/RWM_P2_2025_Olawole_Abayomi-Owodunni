@@ -1,20 +1,89 @@
-__pycache__
-.idea
-tokens/
-venv/
-Docker/MySQL/data/
-static/uploads/
-user_uploads/
-temp
-test-results
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# Build outputs
+dist/
+build/
+.svelte-kit/
+.next/
+out/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
+.sublime-project
+.sublime-workspace
+*.code-workspace
+.env.local
+
+# Environment variables
+.env
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS files
+Thumbs.db
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output/
+*.lcov
+.coverage
+
+# Testing
+test-results/
+.vitest/
+.pytest_cache/
+
+# Temporary files
+*.tmp
+*.bak
+.cache/
+temp/
+tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv
+
+# Project specific
+tokens/
 screenshots/
 .npmrc
 chrome-profile/
 Skills
-node_modules/
-build/
-dist/
-.vscode/
-.svelte-kit/
+Docker/MySQL/data/
+static/uploads/
+user_uploads/
+.idea/
 
