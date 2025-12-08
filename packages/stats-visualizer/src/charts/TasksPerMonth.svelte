@@ -25,7 +25,11 @@
     // Sort by date and convert to array
     return Array.from(monthMap.entries())
       .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
-      .map(([month, count]) => ({ month, count }));
+      .map(([month, count]) => {
+        // Extract first 3 letters of month name
+        const abbrev = month.split(' ')[0].substring(0, 3);
+        return { month, abbrev, count };
+      });
   })();
 
   $: maxCount = monthlyData.length > 0 
@@ -134,14 +138,17 @@
         {#each monthlyData as item, index}
           {@const x = chartPadding.left + index * (barWidth + barGap * 2) + barGap + barWidth / 2}
           {@const y = chartPadding.top + innerHeight + 35}
-          <text
-            {x}
-            {y}
-            class="axis-label x-label"
-            text-anchor="middle"
-          >
-            {item.month}
-          </text>
+          <g>
+            <title>{item.month}</title>
+            <text
+              {x}
+              {y}
+              class="axis-label x-label"
+              text-anchor="middle"
+            >
+              {item.abbrev}
+            </text>
+          </g>
         {/each}
 
         <!-- Y-axis label -->

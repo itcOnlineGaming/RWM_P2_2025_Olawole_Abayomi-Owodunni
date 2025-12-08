@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { SessionData, ChartConfig } from '../types';
   import { getAverageRatingPerTask } from '../utils/aggregation';
+  import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher<{ taskSelected: string }>();
 
   export let data: SessionData[] = [];
   export let config: ChartConfig = {
@@ -42,6 +45,17 @@
       if (rating >= 4) return '#2563eb';
       if (rating >= 3.5) return '#d97706';
       return '#dc2626';
+    }
+  }
+
+  function handleBarClick(taskId: string): void {
+    dispatch('taskSelected', taskId);
+  }
+
+  function handleBarKeydown(e: KeyboardEvent, taskId: string): void {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      dispatch('taskSelected', taskId);
     }
   }
 </script>
@@ -89,14 +103,20 @@
           {@const barHeight = getBarHeight(task.rating)}
           {@const x = chartPadding.left + index * (barWidth + barGap * 2) + barGap}
           {@const y = chartPadding.top + innerHeight - barHeight}
-          <g class="bar-group">
+          <g 
+            class="bar-group" 
+            on:click={() => handleBarClick(task.taskId)} 
+            on:keydown={(e) => handleBarKeydown(e, task.taskId)}
+            role="button" 
+            tabindex="0"
+          >
             <rect
               {x}
               {y}
               width={barWidth}
               height={barHeight}
               fill={getBarColor(task.rating)}
-              class="bar"
+              class="bar clickable"
             />
             <!-- Rating label on top of bar -->
             <text
@@ -261,8 +281,17 @@
 
   :global(.bar-label) {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     fill: var(--text-primary);
+  }
+
+  :global(.clickable) {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  :global(.clickable:hover) {
+    opacity: 0.8;
   }
 
   :global(.bar-group:hover .bar) {
