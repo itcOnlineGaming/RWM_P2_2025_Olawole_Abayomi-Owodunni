@@ -1,23 +1,14 @@
-import type { StorybookConfig } from '@storybook/sveltekit';
+import type { StorybookConfig } from '@storybook/svelte-vite';
 
-import { dirname } from "path"
-
-import { fileURLToPath } from "url"
-
-/**
-* This function is used to resolve the absolute path of a package.
-* It is needed in projects that use Yarn PnP or are set up within a monorepo.
-*/
-function getAbsolutePath(value: string): any {
-  return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)))
-}
 const config: StorybookConfig = {
-  "stories": [
-    "../stories/**/*.stories.@(js|ts|svelte)"
-  ],
-  "addons": [
-    getAbsolutePath('@storybook/addon-svelte-csf')
-  ],
-  "framework": getAbsolutePath('@storybook/sveltekit')
+  stories: ['../packages/**/*.stories.svelte'],
+  addons: ['@storybook/addon-links', '@storybook/addon-essentials'],
+  framework: {
+    name: '@storybook/svelte-vite',
+    options: {},
+  },
+  docs: {
+    autodocs: 'tag',
+  },
 };
 export default config;
