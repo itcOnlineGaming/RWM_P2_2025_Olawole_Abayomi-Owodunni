@@ -2,9 +2,6 @@
 
 **Production-ready reusable Svelte component library** for visualizing activity tracking statistics. Build beautiful, responsive analytics dashboards with 5 pre-built chart types and 7 powerful data utility functions.
 
-> **Grade**: P2 Project (50% of RWM Grade)  
-> **Status**: Complete - All features implemented, tested, and documented
-
 ## What's Inside
 
 This is a **monorepo** with two main packages:
