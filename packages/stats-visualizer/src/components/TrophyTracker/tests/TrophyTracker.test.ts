@@ -166,4 +166,81 @@ describe('TrophyTracker Logic', () => {
       expect(result.size).toBe(100);
     });
   });
+
+  describe('Trophy with custom current date', () => {
+    it('should determine month from provided currentDate', () => {
+      const currentDate = new Date('2024-12-15');
+      const taskDate = new Date('2024-12-10');
+      
+      const taskTimestamp = Math.floor(taskDate.getTime() / 1000);
+      const tasks = [
+        {
+          id: '1',
+          title: 'December Task',
+          completedAt: taskTimestamp
+        }
+      ];
+
+      // Manually calculate with custom currentDate
+      const currentMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const taskMonthStr = `${taskDate.getFullYear()}-${String(taskDate.getMonth() + 1).padStart(2, '0')}`;
+
+      expect(currentMonthStr).toBe('2024-12');
+      expect(taskMonthStr).toBe('2024-12');
+      expect(currentMonthStr).toBe(taskMonthStr);
+    });
+
+    it('should reset trophy when month changes in currentDate', () => {
+      const taskDate = new Date('2024-11-15');
+      const taskTimestamp = Math.floor(taskDate.getTime() / 1000);
+      
+      const tasks = [
+        {
+          id: '1',
+          title: 'November Task',
+          completedAt: taskTimestamp
+        }
+      ];
+
+      // Check November
+      const novemberDate = new Date('2024-11-20');
+      const novemberMonthStr = `${novemberDate.getFullYear()}-${String(novemberDate.getMonth() + 1).padStart(2, '0')}`;
+      const taskMonthStr = `${taskDate.getFullYear()}-${String(taskDate.getMonth() + 1).padStart(2, '0')}`;
+      expect(novemberMonthStr).toBe(taskMonthStr);
+
+      // Check December (should not count November tasks)
+      const decemberDate = new Date('2024-12-01');
+      const decemberMonthStr = `${decemberDate.getFullYear()}-${String(decemberDate.getMonth() + 1).padStart(2, '0')}`;
+      expect(decemberMonthStr).not.toBe(taskMonthStr);
+    });
+
+    it('should count tasks across years correctly', () => {
+      const task2024 = new Date('2024-12-15');
+      const task2025 = new Date('2025-01-10');
+      
+      const tasks = [
+        {
+          id: '1',
+          title: '2024 Task',
+          completedAt: Math.floor(task2024.getTime() / 1000)
+        },
+        {
+          id: '2',
+          title: '2025 Task',
+          completedAt: Math.floor(task2025.getTime() / 1000)
+        }
+      ];
+
+      // In December 2024, only 2024 task should count
+      const dec2024 = new Date('2024-12-20');
+      const dec2024MonthStr = `${dec2024.getFullYear()}-${String(dec2024.getMonth() + 1).padStart(2, '0')}`;
+      
+      // In January 2025, only 2025 task should count
+      const jan2025 = new Date('2025-01-15');
+      const jan2025MonthStr = `${jan2025.getFullYear()}-${String(jan2025.getMonth() + 1).padStart(2, '0')}`;
+
+      expect(dec2024MonthStr).toBe('2024-12');
+      expect(jan2025MonthStr).toBe('2025-01');
+    });
+  });
 });

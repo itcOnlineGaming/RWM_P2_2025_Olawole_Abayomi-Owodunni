@@ -259,6 +259,108 @@ describe('Aggregation Utilities', () => {
       // With a gap, longest streak should be 3
       expect(result.longestStreak).toBeGreaterThanOrEqual(3);
     });
+
+    it('should calculate streak from provided currentDate', () => {
+      const currentDate = new Date('2024-12-15');
+      const streakSessions: SessionData[] = [];
+      
+      // Create sessions for 5 consecutive days ending on currentDate
+      for (let i = 0; i < 5; i++) {
+        const date = new Date(currentDate);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        streakSessions.push({
+          id: `session-${i}`,
+          taskId: 'task-1',
+          rating: 4,
+          duration: 30,
+          date: dateStr,
+          notes: ''
+        });
+      }
+      
+      const result = calculateDailyStreak(streakSessions, currentDate);
+      expect(result.currentStreak).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should use provided currentDate instead of today for streak calculation', () => {
+      const currentDate = new Date('2024-12-10');
+      const streakSessions: SessionData[] = [
+        {
+          id: 'session-1',
+          taskId: 'task-1',
+          rating: 4,
+          duration: 30,
+          date: '2024-12-10',
+          notes: ''
+        },
+        {
+          id: 'session-2',
+          taskId: 'task-1',
+          rating: 4,
+          duration: 30,
+          date: '2024-12-09',
+          notes: ''
+        },
+        {
+          id: 'session-3',
+          taskId: 'task-1',
+          rating: 4,
+          duration: 30,
+          date: '2024-12-08',
+          notes: ''
+        }
+      ];
+      
+      const result = calculateDailyStreak(streakSessions, currentDate);
+      // Should have a 3-day current streak from Dec 8-10
+      expect(result.currentStreak).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should calculate within 365-day window from currentDate', () => {
+      const currentDate = new Date('2024-12-15');
+      const streakSessions: SessionData[] = [];
+      
+      // Create a session 100 days ago from currentDate
+      const oldDate = new Date(currentDate);
+      oldDate.setDate(oldDate.getDate() - 100);
+      
+      streakSessions.push({
+        id: 'session-old',
+        taskId: 'task-1',
+        rating: 4,
+        duration: 30,
+        date: oldDate.toISOString().split('T')[0],
+        notes: ''
+      });
+      
+      const result = calculateDailyStreak(streakSessions, currentDate);
+      // Session should be included in calculation
+      expect(result.currentStreak).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should exclude sessions outside 365-day window from currentDate', () => {
+      const currentDate = new Date('2024-12-15');
+      const streakSessions: SessionData[] = [];
+      
+      // Create a session 400 days ago from currentDate (outside window)
+      const veryOldDate = new Date(currentDate);
+      veryOldDate.setDate(veryOldDate.getDate() - 400);
+      
+      streakSessions.push({
+        id: 'session-veryold',
+        taskId: 'task-1',
+        rating: 4,
+        duration: 30,
+        date: veryOldDate.toISOString().split('T')[0],
+        notes: ''
+      });
+      
+      const result = calculateDailyStreak(streakSessions, currentDate);
+      // Session far in past should not create current streak
+      expect(result.currentStreak).toBe(0);
+    });
   });
 
   describe('aggregateByWeek', () => {

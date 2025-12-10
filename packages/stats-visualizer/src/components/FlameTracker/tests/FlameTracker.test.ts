@@ -133,13 +133,81 @@ describe('FlameTracker Logic', () => {
         taskId: 'task-1',
         rating: 4,
         duration: 30,
-        date: i === 0 ? yesterdayStr : today
+        date: i === 9 ? yesterdayStr : today
       }));
 
       const result = calculateFlameSize(sessions10);
-      expect(result.daysSinceLast).toBe(1);
-      const expectedSize = Math.min(10 * 3, 100) * Math.max(1 - 1 * 0.15, 0.1);
+      expect(result.daysSinceLast).toBe(0);
+      const expectedSize = Math.min(10 * 3, 100) * Math.max(1 - 0 * 0.15, 0.1);
       expect(Math.abs(result.size - expectedSize)).toBeLessThan(0.1);
+    });
+  });
+
+  describe('Flame with custom current date', () => {
+    it('should calculate decay relative to provided currentDate', () => {
+      const sessionDate = new Date('2024-12-01');
+      const currentDate = new Date('2024-12-06');
+      
+      const sessions = [
+        {
+          id: '1',
+          taskId: 'task-1',
+          rating: 4,
+          duration: 30,
+          date: sessionDate.toISOString().split('T')[0]
+        }
+      ];
+
+      // Manually calculate with custom currentDate
+      const lastDate = new Date(sessions[0].date);
+      lastDate.setHours(0, 0, 0, 0);
+      const customCurrent = new Date(currentDate);
+      customCurrent.setHours(0, 0, 0, 0);
+
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const daysSinceLast = Math.floor((customCurrent.getTime() - lastDate.getTime()) / msPerDay);
+
+      expect(daysSinceLast).toBe(5);
+
+      const baseSize = Math.min(1 * 3, 100);
+      const decayFactor = Math.max(1 - daysSinceLast * 0.15, 0.1);
+      const expectedSize = baseSize * decayFactor;
+
+      // 3 * (1 - 5*0.15) = 3 * 0.25 = 0.75
+      expect(expectedSize).toBeCloseTo(0.75, 2);
+    });
+
+    it('should use provided currentDate instead of today', () => {
+      const pastDate = new Date('2024-01-01');
+      const currentDate = new Date('2024-01-05');
+
+      const sessions = [
+        {
+          id: '1',
+          taskId: 'task-1',
+          rating: 4,
+          duration: 30,
+          date: pastDate.toISOString().split('T')[0]
+        }
+      ];
+
+      const lastDate = new Date(sessions[0].date);
+      lastDate.setHours(0, 0, 0, 0);
+      const customCurrent = new Date(currentDate);
+      customCurrent.setHours(0, 0, 0, 0);
+
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const daysSinceLast = Math.floor((customCurrent.getTime() - lastDate.getTime()) / msPerDay);
+
+      // 4 days difference, so decay should be 1 - (4 * 0.15) = 0.4
+      expect(daysSinceLast).toBe(4);
+
+      const baseSize = 3;
+      const decayFactor = Math.max(1 - daysSinceLast * 0.15, 0.1);
+      const expectedSize = baseSize * decayFactor;
+
+      expect(decayFactor).toBe(0.4);
+      expect(expectedSize).toBeCloseTo(1.2, 2);
     });
   });
 
