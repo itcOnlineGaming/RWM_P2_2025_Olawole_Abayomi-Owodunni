@@ -1,9 +1,12 @@
 <script lang="ts">
   import { SessionsOverDays, AvgRatingPerTask, SessionRatingsPerTask, TasksPerMonth } from '@ayola/stats-visualizer';
   import type { SessionData, TaskData, ChartConfig } from '@ayola/stats-visualizer';
+  import { getSessions, getTasks, saveSessions, saveTasks, clearStoredData, hasStoredData } from '$lib/utils/storage';
+  import { onMount } from 'svelte';
 
   let sessions: SessionData[] = [];
   let tasks: TaskData[] = [];
+  let dataLoaded = false;
   let selectedTaskId: string | null = null;
   let showModal: boolean = false;
   let showFiltersModal: boolean = false;
@@ -88,12 +91,29 @@
         });
       }
     }
+
+    // Save to localStorage
+    saveSessions(sessions);
+    saveTasks(tasks);
   }
 
   function clearData() {
     sessions = [];
     tasks = [];
+    clearStoredData();
   }
+
+  // Load data on component mount
+  onMount(() => {
+    if (hasStoredData()) {
+      sessions = getSessions();
+      tasks = getTasks();
+    } else {
+      // Generate initial data if none exists
+      generateSampleData();
+    }
+    dataLoaded = true;
+  });
 
   function toggleTask(taskId: string): void {
     if (selectedTasks.has(taskId)) {

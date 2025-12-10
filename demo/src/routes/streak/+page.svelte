@@ -1,9 +1,12 @@
 <script lang="ts">
   import { DailyStreakTracker, FlameTracker, TrophyTracker } from '@ayola/stats-visualizer';
   import type { SessionData, TaskData, ChartConfig } from '@ayola/stats-visualizer';
+  import { getSessions, getTasks, saveSessions, saveTasks, clearStoredData, hasStoredData } from '$lib/utils/storage';
+  import { onMount } from 'svelte';
 
   let sessions: SessionData[] = [];
   let tasks: TaskData[] = [];
+  let dataLoaded = false;
 
   function generateSampleData() {
     sessions = [];
@@ -45,15 +48,29 @@
         });
       }
     }
+
+    // Save to localStorage
+    saveSessions(sessions);
+    saveTasks(tasks);
   }
 
   function clearData() {
     sessions = [];
     tasks = [];
+    clearStoredData();
   }
 
-  // Generate initial data
-  generateSampleData();
+  // Load data on component mount
+  onMount(() => {
+    if (hasStoredData()) {
+      sessions = getSessions();
+      tasks = getTasks();
+    } else {
+      // Generate initial data if none exists
+      generateSampleData();
+    }
+    dataLoaded = true;
+  });
 
   // Detect system theme preference
   const prefersDark = typeof window !== 'undefined'
