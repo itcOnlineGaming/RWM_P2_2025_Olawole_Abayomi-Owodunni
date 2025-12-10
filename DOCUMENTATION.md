@@ -41,6 +41,10 @@ All documentation for the @ayola/stats-visualizer project is now complete and co
 **`API_REFERENCE.md`** (12 KB) - Complete API Documentation
 - All 5 components with props and examples
 - All 7 utilities with detailed signatures
+- **NEW:** FlameTracker and TrophyTracker with currentDate prop documentation
+- **NEW:** calculateDailyStreak with optional currentDate parameter
+- **NEW:** Demo App Components (AddSessionModal, CreateTaskModal, MobileNav)
+- **NEW:** Storage Utility Functions (get/set sessions, tasks, app time)
 - Type definitions (SessionData, TaskData, ChartConfig, etc.)
 - Error handling guide
 - Performance notes

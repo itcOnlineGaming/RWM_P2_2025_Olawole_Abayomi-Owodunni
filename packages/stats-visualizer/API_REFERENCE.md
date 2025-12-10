@@ -106,6 +106,7 @@ Visual streak display with current, longest, and historical breakdown.
 **Props:**
 ```typescript
 data: SessionData[]
+currentDate?: Date                     // Optional: Use this date for calculations (default: today)
 config?: ChartConfig
 ```
 
@@ -113,6 +114,7 @@ config?: ChartConfig
 ```svelte
 <DailyStreakTracker 
   data={sessions}
+  currentDate={appTime}
   config={{ title: 'Your Streak' }} 
 />
 ```
@@ -121,6 +123,73 @@ config?: ChartConfig
 - 🔥 Current streak
 - 🏆 Longest streak
 - 📅 Calendar details
+
+**Note:** When `currentDate` is provided, streak calculations are performed relative to that date instead of today. Useful for testing time advancement scenarios.
+
+---
+
+### FlameTracker
+
+Motivational flame indicator showing activity consistency and decay.
+
+**Props:**
+```typescript
+data: SessionData[]
+currentDate?: Date                     // Optional: Use this date for decay calculations (default: today)
+```
+
+**Example:**
+```svelte
+<FlameTracker 
+  data={sessions}
+  currentDate={appTime}
+/>
+```
+
+**Features:**
+- 4 intensity levels (smolder, small, medium, large)
+- Grows with each session
+- Decays 15% per missed day
+- Minimum smolder at 10%
+- Capped at 100% intensity
+
+**Calculation:**
+- Base size: 3% per session (capped at 100%)
+- Decay: 15% per day since last session
+- Minimum: 10% (always visible)
+
+---
+
+### TrophyTracker
+
+Monthly achievement indicator tracking task completions.
+
+**Props:**
+```typescript
+data: TaskData[]
+currentDate?: Date                     // Optional: Use this date for month determination (default: today)
+```
+
+**Example:**
+```svelte
+<TrophyTracker 
+  data={tasks}
+  currentDate={appTime}
+/>
+```
+
+**Features:**
+- Grows 8% per task completed this month
+- Auto-resets at month boundary
+- Milestone animations at 25%, 50%, 75%, 100%
+- Capped at 100% growth
+
+**Calculation:**
+- Base size: 8% per task (capped at 100%)
+- Month: Determined by currentDate
+- Reset: Automatic when month changes
+
+**Note:** When `currentDate` is provided, the tracker uses that month for filtering tasks. Useful for demonstrating monthly resets.
 
 ---
 
@@ -266,18 +335,25 @@ ranked.forEach(({ taskId, rating }) => {
 
 **Signature:**
 ```typescript
-function calculateDailyStreak(sessions: SessionData[]): {
+function calculateDailyStreak(
+  sessions: SessionData[], 
+  currentDate?: Date
+): {
   currentStreak: number;
   longestStreak: number;
   details: DailyStreak[];
 }
 ```
 
+**Parameters:**
+- `sessions` - Array of session records
+- `currentDate` - Optional: Use this date as "today" for calculations (default: actual today)
+
 **Returns:**
 ```typescript
 {
-  currentStreak: number,    // Consecutive days from today
-  longestStreak: number,    // Best streak ever
+  currentStreak: number,    // Consecutive days from currentDate backwards
+  longestStreak: number,    // Best streak in 365-day window
   details: [
     {
       date: Date,
@@ -292,7 +368,12 @@ function calculateDailyStreak(sessions: SessionData[]): {
 
 **Example:**
 ```typescript
+// Using today
 const streak = calculateDailyStreak(sessions);
+
+// Using specific date (for testing/demo purposes)
+const appTime = new Date('2024-12-15');
+const streak = calculateDailyStreak(sessions, appTime);
 
 console.log(`🔥 Current streak: ${streak.currentStreak} days`);
 console.log(`🏆 Best streak: ${streak.longestStreak} days`);
@@ -303,7 +384,13 @@ if (streak.currentStreak === 0 && streak.longestStreak > 0) {
 }
 ```
 
-**History:** Last 365 days from today
+**History:** Last 365 days from currentDate
+
+**Note:** The optional `currentDate` parameter is useful for:
+- Testing streak calculations
+- Time-travel debugging
+- Demo scenarios with artificial dates
+- Historical analysis
 
 ---
 
@@ -471,6 +558,205 @@ interface DailyStreak {
     rating?: number;  // Average rating if hasSession
   }>;
 }
+```
+
+---
+
+## Demo App Components
+
+The demo app includes additional UI components for managing sessions, tasks, and time advancement:
+
+### AddSessionModal
+
+Modal form for creating new sessions.
+
+**Location:** `demo/src/components/AddSessionModal`
+
+**Props:**
+```typescript
+{
+  tasks: TaskData[];           // Available tasks for selection
+  isOpen: boolean;             // Controls modal visibility
+  onClose: () => void;         // Callback when modal closes
+  onSubmit: (session) => void; // Callback with new session
+}
+```
+
+**Form Fields:**
+- Task selector (required)
+- Date picker (defaults to app time)
+- Rating 1-5 slider
+- Duration in minutes
+- Optional notes textarea
+
+**Example:**
+```svelte
+<AddSessionModal 
+  {tasks}
+  {isOpen}
+  on:close={closeModal}
+  on:submit={handleAddSession}
+/>
+```
+
+---
+
+### CreateTaskModal
+
+Modal form for creating new tasks.
+
+**Location:** `demo/src/components/CreateTaskModal`
+
+**Props:**
+```typescript
+{
+  isOpen: boolean;             // Controls modal visibility
+  onClose: () => void;         // Callback when modal closes
+  onSubmit: (task) => void;    // Callback with new task
+}
+```
+
+**Form Fields:**
+- Task title (required)
+- Description (optional)
+- Completion date (defaults to app time)
+
+**Example:**
+```svelte
+<CreateTaskModal 
+  {isOpen}
+  on:close={closeModal}
+  on:submit={handleAddTask}
+/>
+```
+
+---
+
+### MobileNav
+
+Responsive bottom navigation for mobile devices.
+
+**Location:** `demo/src/components/MobileNav`
+
+**Props:**
+```typescript
+// Component automatically uses $page.url from SvelteKit
+// No props required - uses reactive context
+```
+
+**Behavior:**
+- Hidden on desktop (>640px)
+- Visible and fixed at bottom on mobile (<640px)
+- Shows Motivation (🔥) and Analytics (📊) links
+- Automatically highlights active page
+
+**Example:**
+```svelte
+<MobileNav />
+```
+
+---
+
+## Storage Utility Functions
+
+Demo app includes utilities for managing app state with localStorage persistence.
+
+**Location:** `demo/src/lib/utils/storage.ts`
+
+### saveSessions / getSessions
+
+Persist and retrieve session data.
+
+```typescript
+export function saveSessions(sessions: SessionData[]): void
+export function getSessions(): SessionData[]
+```
+
+**Example:**
+```typescript
+import { saveSessions, getSessions } from '$lib/utils/storage';
+
+// Save sessions
+const sessions = [...];
+saveSessions(sessions);
+
+// Retrieve sessions
+const restored = getSessions();
+```
+
+---
+
+### saveTasks / getTasks
+
+Persist and retrieve task data.
+
+```typescript
+export function saveTasks(tasks: TaskData[]): void
+export function getTasks(): TaskData[]
+```
+
+**Example:**
+```typescript
+import { saveTasks, getTasks } from '$lib/utils/storage';
+
+saveTasks(tasks);
+const restored = getTasks();
+```
+
+---
+
+### App Time Management
+
+Functions for managing simulated app time separate from real time.
+
+```typescript
+export function getAppTime(): Date
+export function setAppTime(date: Date): void
+export function advanceAppTime(days: number): Date
+```
+
+**Purpose:** Allows testing time-dependent features (flame decay, trophy resets, streaks) without waiting for real time to pass.
+
+**Example:**
+```typescript
+import { getAppTime, setAppTime, advanceAppTime } from '$lib/utils/storage';
+
+// Set to specific date
+setAppTime(new Date('2024-12-15'));
+
+// Get current app time
+const now = getAppTime();
+
+// Advance by days
+const newDate = advanceAppTime(5);  // Move 5 days forward
+
+// Pass to components for testing
+<FlameTracker data={sessions} currentDate={getAppTime()} />
+<TrophyTracker data={tasks} currentDate={getAppTime()} />
+```
+
+---
+
+### clearStoredData / hasStoredData
+
+Utility functions for data management.
+
+```typescript
+export function clearStoredData(): void
+export function hasStoredData(): boolean
+```
+
+**Example:**
+```typescript
+import { clearStoredData, hasStoredData } from '$lib/utils/storage';
+
+// Check if data exists
+if (hasStoredData()) {
+  console.log('Data already stored');
+}
+
+// Clear everything
+clearStoredData();
 ```
 
 ---

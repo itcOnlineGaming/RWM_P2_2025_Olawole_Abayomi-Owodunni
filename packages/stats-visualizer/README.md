@@ -293,6 +293,77 @@ const stats = {
 
 ---
 
+## Advanced Features
+
+### Time-Based Calculations (for Testing & Demos)
+
+All tracker components accept an optional `currentDate` prop to calculate metrics relative to a specific date instead of today. This is perfect for testing, demos, and time-advancement scenarios:
+
+```svelte
+<script lang="ts">
+  import { FlameTracker, TrophyTracker, DailyStreakTracker } from '@ayola/stats-visualizer';
+  
+  const appTime = new Date('2024-12-15');
+  const sessions = [...];
+  const tasks = [...];
+</script>
+
+<!-- All calculations use appTime instead of today -->
+<FlameTracker data={sessions} currentDate={appTime} />
+<TrophyTracker data={tasks} currentDate={appTime} />
+<DailyStreakTracker data={sessions} currentDate={appTime} />
+```
+
+**Use Cases:**
+- 🧪 Testing time-dependent logic (flame decay, trophy resets)
+- 📱 Demo scenarios with prepared dates
+- 🔄 Historical analysis from different points in time
+- 🎯 Time-travel debugging
+
+**Affected Components:**
+- `FlameTracker` - Decay calculated from currentDate
+- `TrophyTracker` - Monthly reset determined by currentDate
+- `DailyStreakTracker` - Streak calculated from currentDate
+- `calculateDailyStreak()` - Streak metrics use currentDate
+
+### Data Persistence
+
+The demo app includes localStorage utilities for persisting session and task data across browser sessions:
+
+```typescript
+import { 
+  saveSessions, getSessions,
+  saveTasks, getTasks,
+  getAppTime, setAppTime, advanceAppTime,
+  clearStoredData
+} from 'demo/src/lib/utils/storage';
+
+// Save data
+saveSessions(sessions);
+saveTasks(tasks);
+
+// Retrieve data
+const restored = getSessions();
+
+// Time management for testing
+setAppTime(new Date('2024-12-15'));
+const newDate = advanceAppTime(5); // Move 5 days forward
+```
+
+See [Storage Utilities Documentation](API_REFERENCE.md#storage-utility-functions) for complete details.
+
+### Responsive Mobile Components
+
+The demo app includes UI components optimized for mobile and tablet devices:
+
+- **MobileNav** - Bottom navigation bar that auto-hides on desktop
+- **AddSessionModal** - Mobile-friendly session creation form
+- **CreateTaskModal** - Mobile-friendly task creation form
+
+See [Demo App Components](API_REFERENCE.md#demo-app-components) documentation.
+
+---
+
 ## Type Definitions
 
 ## Type Definitions
